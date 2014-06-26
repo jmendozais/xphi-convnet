@@ -1,6 +1,6 @@
 /*
  * layer.cpp
- *
+
  *  Created on: Jun 14, 2014
  *      Author: mac
  */
@@ -18,9 +18,9 @@ Layer::Layer() {
 
 Layer::Layer(ConvNet* convNet, std::map<std::string, std::string> params) {
 	_convNet = convNet;
-	_channels = str2int(params["channels"]);
 	_rows = str2int(params["rows"]);
 	_cols = str2int(params["cols"]);
+	_channels = str2int(params["channels"]);
 }
 
 Layer::~Layer() {
@@ -110,6 +110,9 @@ void FCLayer::postInit() {
 }
 
 DataLayer::DataLayer(ConvNet* convNet, std::map<std::string, std::string> params) : Layer(convNet, params) {
+	
+	_channels = 3;
+	std::cout << _convNet->getMiniBatchSize() << " " << _channels << " " << _rows << " " << _cols << std::endl;
 	_outputs = new Matrix(_convNet->getMiniBatchSize(), _channels * _rows * _cols);
 }
 

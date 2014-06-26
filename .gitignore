@@ -22,8 +22,6 @@
 
 *.d
 
-test/cifar-10-batches-bin/
-
 .DS_Store
 */.DS_Store
 .idea/
