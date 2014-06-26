@@ -1,5 +1,5 @@
-CC		  := g++
-LD      := g++
+CC		  := icc
+LD      := icc
 CFLAGS  := -fopenmp -MP -MD -c  
 LDFLAGS := -fopenmp -MP -MD 
 SOURCES	  := $(shell echo include/common/*.cpp include/convnet/*.cpp)
