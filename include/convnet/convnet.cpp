@@ -7,7 +7,7 @@
 
 #include "convnet.h"
 #include "../common/common.h"
-#include "iostream.h"
+#include <iostream>
 
 ConvNet::ConvNet() {
 	// TODO Auto-generated constructor stub
