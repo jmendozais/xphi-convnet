@@ -52,10 +52,8 @@ public:
 		_numEntries = _size / CIFAR10_LINE;
 	}
 	std::vector<Matrix*> getMiniBatch(int miniBatch) {
-		assert(miniBatch < _size / (CIFAR10_LINE * _miniBatchSize));
-
-		int miniBatchIni = miniBatch * _miniBatchSize;
-		int miniBatchEnd = std::min(miniBatchIni + _miniBatchSize, _size);
+		int numMinibatches = _size / (CIFAR10_LINE * _miniBatchSize);
+		assert(miniBatch < numMinibatches);
 		int imageSize = IMG_SIZE;
 		int paddedImageSize = imageSize + 2 * PADDING;
 		int padding = PADDING;
@@ -64,13 +62,13 @@ public:
 		char* buffer = buffers[0], *curBuffer;
 
 		std::vector<Matrix*> res(2);
-		res[0] = new Matrix(_miniBatchSize,
-				channels * paddedImageSize * paddedImageSize);
-		memset(res[0]->getData(), 0,
-				sizeof(float) * _miniBatchSize * channels * paddedImageSize
+		res[0] = new Matrix(_miniBatchSize, channels * paddedImageSize * paddedImageSize);
+		memset(res[0]->getData(), 0, sizeof(float) * _miniBatchSize * channels * paddedImageSize
 						* paddedImageSize);
 		res[1] = new Matrix(_miniBatchSize, 1);
+
 		for (int i = 0; i < _miniBatchSize; ++i) {
+
 			curBuffer = buffer + (miniBatch*_miniBatchSize + i)*CIFAR10_LINE;
 			res[1]->getData()[i] = (float)curBuffer[0];
 			for (int j = 0; j < channels; ++j)

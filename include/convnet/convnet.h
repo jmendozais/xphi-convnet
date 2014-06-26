@@ -17,7 +17,10 @@ private:
 	std::vector<Layer*> _layers;
 	std::vector<DataLayer*> _dataLayers;
 	int _miniBatchSize;
+
 public:
+	int _checker;
+
 	ConvNet();
 	/*
 	 *

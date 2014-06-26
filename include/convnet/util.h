@@ -10,11 +10,15 @@
 
 #include <assert.h>
 #include <algorithm>
+#include "omp.h"
 
-#define IDX2(i, j, ni, nj) (i*nj + j)
+#define IDX2(i, j, ni, nj) ((i)*(nj) + (j))
 //#define IDX(i,j,k, ni, nj, nk) (i*(nj*nk) + j*nk + k)
-#define IDX4(i,j,k,p, ni, nj, nk, np) (i*(nj*nk*np) + j*(nk*np) + k*np + p)
+#define IDX4(i,j,k,p, ni, nj, nk, np) ((i)*(nj)*(nk)*(np) + (j)*(nk)*(np) + (k)*(np) + (p))
 
+inline int idx(int i,int j,int k,int p,int ni,int nj,int nk,int np) {
+	return ((i)*(nj)*(nk)*(np) + (j)*(nk)*(np) + (k)*(np) + (p));
+}
 /**
  * images : holds an minibatch of images. shape ( minibsize, cols, rows, channels )
  * nimages, imagerows, imagecols, nchannels : image params
@@ -33,24 +37,27 @@ void conv(float *images, const int numImgs, const int numChannels,
 
 	int xp, yp;
 	float res;
-	for (int i = 0; i < numImgs; ++i)
-		for (int j = 0; j < numFilters; ++j)
+	int i, j, x, y, ch, fi, fj;
+	for (i = 0; i < numImgs; ++i) {
+		#pragma omp parallel for private(j, xp, yp, x, y, ch, fi, fj, res)
+		for (j = 0; j < numFilters; ++j)
 			/* Convolution */
-			for(int x = 0; x < outRows; ++ x)
-				for(int y = 0; y < outCols; ++ y) {
+			for(x = 0; x < outRows; ++ x)
+				for(y = 0; y < outCols; ++ y) {
 					xp = x * stride;
 					yp = y * stride;
 					res = 0;
-					for (int ch = 0; ch < numChannels; ++ch)
-						for (int fi = 0; fi < filterSize; ++fi)
-							for (int fj = 0; fj < filterSize; ++fj) {
+					for (ch = 0; ch < numChannels; ++ch)
+						for (fi = 0; fi < filterSize; ++fi)
+							for (fj = 0; fj < filterSize; ++fj) {
 								res += filters[IDX4(j, ch, fi, fj, numFilters,
 										numChannels, filterSize, filterSize)]
 										* images[IDX4(i, ch, xp+fi, yp+fj, numImgs,
 												numChannels, imgRows, imgCols)];
 							}
-					output[IDX4(i, j, x, y, numImgs, numFilters, outRows, outCols)] = res;
+					output[idx(i, j, x, y, numImgs, numFilters, outRows, outCols)] = res;
 				}
+	}
 }
 
 class MaxPooler {
@@ -75,31 +82,36 @@ void batchPool(float *images, int numImgs, int numChannels, int imgRows, int img
 	assert((imgRows - filterSize)/stride + 1 == outRows);
 
 	int filterPixels = filterSize * filterSize;
-	int xp, yp;
+	int xp, yp, i, j, x, y, m, n;
 	float res;
-	for(int i = 0; i < numImgs; ++ i)
-		for(int j = 0; j < numChannels; ++ j) {
-			for(int x = 0; x < outRows; ++ x)
-				for(int y = 0; y < outCols; ++ y) {
+	for(i = 0; i < numImgs; ++ i) {
+		#pragma omp parallel for private(j, x, y, m, n, res, xp, yp)
+		for(j = 0; j < numChannels; ++ j) {
+			for(x = 0; x < outRows; ++ x)
+				for(y = 0; y < outCols; ++ y) {
 					xp = x * stride;
 					yp = y * stride;
 					res = pooler.base();
-					for(int m = 0; m < filterSize; ++ m)
-						for(int n = 0; n < filterSize; ++n)
+					for(m= 0; m < filterSize; ++ m)
+						for(n = 0; n < filterSize; ++n)
 							res = pooler(res, images[IDX4(i, j, xp + m, yp + n, numImgs, numChannels, imgRows, imgCols)]);
 					output[IDX4(i, j, x, y, numImgs, numChannels, outRows, outCols)] = pooler.output(res, filterPixels);
 				}
 		}
+	}
 }
 void fullyConnected(float *images, int numImgs, int numPixels, float *weights, float *outputs, int outSize) {
 	float res;
-	for(int i = 0; i < numImgs; ++ i)
-		for(int j = 0; j < numPixels; ++ j)
-			for(int k = 0; k < outSize; ++ k) {
-				res = 0;
-				for(int x = 0; x < numPixels; ++ x)
-					res += weights[IDX2(k, j, outSize, numPixels)] * images[IDX2(i, j, numImgs, numPixels)];
-				outputs[IDX2(i, j, numImgs, numPixels)] = res;
-			}
+	int i, j, k;
+	for(i = 0; i < numImgs; ++ i) {
+	#pragma omp parallel for default(none) private(j, k, res) shared(weights, outputs, images, i, outSize, numPixels)
+		for(j = 0; j < outSize; ++ j) {
+			res = 0;
+			for(k = 0; k < numPixels; ++ k)
+				res += weights[IDX2(j, k, outSize, numPixels)] * images[IDX2(i, k, numImgs, numPixels)];
+			outputs[IDX2(i, j, numImgs, outSize)] = res;
+		}
+	}
+
 }
 #endif /* UTIL_H_ */

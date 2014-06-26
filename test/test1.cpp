@@ -15,6 +15,8 @@ using namespace std;
 #include <fstream>
 #include <map>
 #include <vector>
+#include "omp.h"
+#include "test_utils.h"
 
 std::vector<std::map<std::string, std::string> > parseInput(std::string file) {
 	std::vector<std::map<std::string, std::string> > params;
@@ -62,20 +64,27 @@ void testConvNet() {
 }
 void testConvNet2() {
 	std::vector<std::map<std::string, std::string> > params = parseInput("test/19confignopadding");
-	ConvNet convNet(params, 1);
-	DataProvider dp(1);
+	ConvNet convNet(params, 2);
+	DataProvider dp(2);
 	dp.addData("test/cifar-10-batches-bin/data_batch_1.bin");
 	int numMinibatches = dp.getNumEntries()/dp.getMiniBatchSize();
 
-	for(int i = 0; i < numMinibatches; ++i) {
-		std::cout << "num mini: " << i << "/" << dp.getSize() << std::endl;
+	double start, end, duration;
+	start = omp_get_wtime();
+	int checker = 0;
+	for(int i = 0; i < 100; ++i) {
 		std::vector<Matrix*> inputs = dp.getMiniBatch(i);
 		convNet.fprop(inputs);
+		checker += convNet._checker;
+		checker %= 37;
 		if(i + 1 == numMinibatches) {
 			delete inputs[0];
 			delete inputs[1];
 		}
 	}
+	end = omp_get_wtime();
+	std::cout << end - start << std::endl;
+	std::cout << "checksum: " << checker << std::endl;
 }
 
 int main() {

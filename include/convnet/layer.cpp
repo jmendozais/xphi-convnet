@@ -21,7 +21,6 @@ Layer::Layer(ConvNet* convNet, std::map<std::string, std::string> params) {
 	_channels = str2int(params["channels"]);
 	_rows = str2int(params["rows"]);
 	_cols = str2int(params["cols"]);
-	_outputs = new Matrix(_convNet->getMiniBatchSize(), _channels * _rows * _cols);
 }
 
 Layer::~Layer() {
@@ -77,11 +76,19 @@ void ConvLayer::postInit() {
 	Layer * prev = _prevs[0];
 	Matrix* weigths = new Matrix(_numFilters, prev->getChannels() * _filterSize * _filterSize);
 	_weightsList.push_back(weigths);
+
+	_outputs = new Matrix(_convNet->getMiniBatchSize(), _numFilters * _rows * _cols);
+
+	int size = _numFilters * prev->getChannels() * _filterSize * _filterSize;
+	float *data = weigths->getData();
+	for(int i = 0; i < size; ++ i)
+		data[i] = i * 1.0 /(size * 100);
 }
 
 PoolLayer::PoolLayer(ConvNet* convNet, std::map<std::string, std::string> params) : Layer(convNet, params) {
 	_stride = str2int(params["stride"]);
 	_filterSize = str2int(params["sizeX"]);
+	_outputs = new Matrix(_convNet->getMiniBatchSize(), _channels * _rows * _cols);
 }
 
 FCLayer::FCLayer(ConvNet* convNet, std::map<std::string, std::string> params) : WeightLayer(convNet, params) {
@@ -93,9 +100,17 @@ void FCLayer::postInit() {
 	Layer * prev = _prevs[0];
 	Matrix* weigths = new Matrix(_outputSize, prev->getChannels() * prev->getRows() * prev->getCols());
 	_weightsList.push_back(weigths);
+
+	_outputs = new Matrix(_convNet->getMiniBatchSize(), _outputSize);
+
+	int size = _outputSize * prev->getChannels() * prev->getRows() * prev->getCols();
+	float *data = weigths->getData();
+	for(int i = 0; i < size; ++ i)
+		data[i] = i * 1.0 /(size * 100);
 }
 
 DataLayer::DataLayer(ConvNet* convNet, std::map<std::string, std::string> params) : Layer(convNet, params) {
+	_outputs = new Matrix(_convNet->getMiniBatchSize(), _channels * _rows * _cols);
 }
 
 SoftMaxLayer::SoftMaxLayer(ConvNet* convNet, std::map<std::string, std::string> params) : Layer(convNet, params) {
@@ -137,6 +152,7 @@ void PoolLayer::fprop(Matrix* input) {
 	Layer* prev = getPrevs()[0];
 
 	batchPool(input->getData(), _convNet->getMiniBatchSize(), prev->getChannels(), prev->getRows(), prev->getCols(), _stride, _filterSize, _outputs->getData(), _rows, _cols, MaxPooler());
+
 	fpropNext();
 
 }
@@ -146,5 +162,12 @@ void FCLayer::fprop(Matrix* input) {
 	assert(getPrevs().size() > 0);
 	Layer* prev = getPrevs()[0];
 	fullyConnected(input->getData(), _convNet->getMiniBatchSize(), prev->getChannels() * prev->getCols() * prev->getRows(), _weightsList[0]->getData(), _outputs->getData(), _outputSize);
-	fpropNext();
+
+	float * data = _outputs->getData();
+	int sum = 0;
+	for(int i = 0; i < _outputSize; ++ i) {
+		sum += data[i];
+	}
+	_convNet->_checker += (int)sum;
+	_convNet->_checker %= 37;
 }

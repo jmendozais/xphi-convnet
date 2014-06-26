@@ -59,7 +59,6 @@ ConvNet::ConvNet(std::vector<std::map<std::string, std::string> > params, int mi
 			inputs = split((*it).second, ",");
 			for(int j = 0; j < inputs.size(); ++ j) {
 				it2 = indexByName.find(inputs[j]);
-				std::cout << inputs[j] << " " << (*it2).second<< std::endl;
 				assert(it2 != indexByName.end());
 				_layers[i]->addPrev(_layers[(*it2).second]);
 			}
@@ -76,6 +75,7 @@ ConvNet::ConvNet(std::vector<std::map<std::string, std::string> > params, int mi
 	for(int i = 0; i < numLayers; ++i) {
 		_layers[i]->postInit();
 	}
+	_checker = 0;
 }
 
 Layer ConvNet::initLayer(std::string layerType,
