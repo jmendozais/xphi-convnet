@@ -26,7 +26,6 @@ ConvNet::ConvNet(std::vector<std::map<std::string, std::string> > params, int mi
 	for(int i = 0; i < numLayers; ++i) {
 		name = params[i]["name"];
 		type = params[i]["type"];
-		std::cout << name << " ####  " << type << std::endl;
 		Layer *newLayer = NULL;
 		DataLayer *newDataLayer = NULL;
 		if( type == "data" ) {

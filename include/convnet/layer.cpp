@@ -112,7 +112,6 @@ void FCLayer::postInit() {
 DataLayer::DataLayer(ConvNet* convNet, std::map<std::string, std::string> params) : Layer(convNet, params) {
 	
 	_channels = 3;
-	std::cout << _convNet->getMiniBatchSize() << " " << _channels << " " << _rows << " " << _cols << std::endl;
 	_outputs = new Matrix(_convNet->getMiniBatchSize(), _channels * _rows * _cols);
 }
 
