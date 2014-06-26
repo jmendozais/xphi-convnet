@@ -16,7 +16,6 @@ using namespace std;
 #include <map>
 #include <vector>
 #include "omp.h"
-#include "test_utils.h"
 
 std::vector<std::map<std::string, std::string> > parseInput(std::string file) {
 	std::vector<std::map<std::string, std::string> > params;

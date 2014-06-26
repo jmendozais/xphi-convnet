@@ -1,4 +1,4 @@
-CC		:= g++
+CC		  := g++
 LD      := g++
 CFLAGS  := -fopenmp -MP -MD -c  
 LDFLAGS := -fopenmp -MP -MD 
