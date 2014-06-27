@@ -34,13 +34,14 @@ void conv(float *images, const int numImgs, const int numChannels,
 	assert((imgRows - filterSize)%stride == 0);
 	assert((imgCols - filterSize)/stride + 1 == outCols);
 	assert((imgRows - filterSize)/stride + 1 == outRows);
-
 	int xp, yp;
 	float res;
-	int i, j, x, y, ch, fi, fj;
-	#pragma omp parallel for private(i, j, xp, yp, x, y, ch, fi, fj, res)
-	for (i = 0; i < numImgs; ++i) {
-		for (j = 0; j < numFilters; ++j)
+	int i, j, x, y, ch, fi, fj, idx1;
+	// TODO: replace this by omp collapse
+	#pragma omp parallel for private(i, j, xp, yp, x, y, ch, fi, fj, res, idx1)
+	for (idx1= 0; idx1 < numImgs * numFilters; ++idx1) {
+		i = idx1/numFilters;
+		j = idx1%numFilters;
 			/* Convolution */
 			for(x = 0; x < outRows; ++ x)
 				for(y = 0; y < outCols; ++ y) {
@@ -82,11 +83,12 @@ void batchPool(float *images, int numImgs, int numChannels, int imgRows, int img
 	assert((imgRows - filterSize)/stride + 1 == outRows);
 
 	int filterPixels = filterSize * filterSize;
-	int xp, yp, i, j, x, y, m, n;
+	int xp, yp, i, j, x, y, m, n, idx1;
 	float res;
-	#pragma omp parallel for private(i, j, x, y, m, n, res, xp, yp)
-	for(i = 0; i < numImgs; ++ i) {
-		for(j = 0; j < numChannels; ++ j) {
+	#pragma omp parallel for private(i, j, x, y, m, n, res, xp, yp, idx1)
+	for (idx1= 0; idx1 < numImgs * numChannels; ++idx1) {
+			i = idx1/numChannels;
+			j = idx1%numChannels;
 			for(x = 0; x < outRows; ++ x)
 				for(y = 0; y < outCols; ++ y) {
 					xp = x * stride;
@@ -97,21 +99,19 @@ void batchPool(float *images, int numImgs, int numChannels, int imgRows, int img
 							res = pooler(res, images[IDX4(i, j, xp + m, yp + n, numImgs, numChannels, imgRows, imgCols)]);
 					output[IDX4(i, j, x, y, numImgs, numChannels, outRows, outCols)] = pooler.output(res, filterPixels);
 				}
-		}
 	}
 }
 void fullyConnected(float *images, int numImgs, int numPixels, float *weights, float *outputs, int outSize) {
 	float res;
-	int i, j, k;
-	#pragma omp parallel for private(i, j, k, res) 
-	for(i = 0; i < numImgs; ++ i) {
-		for(j = 0; j < outSize; ++ j) {
+	int i, j, k, idx1;
+	#pragma omp parallel for private(i, j, k, res, idx1)
+	for (idx1= 0; idx1 < numImgs * outSize; ++idx1) {
+			i = idx1/outSize;
+			j = idx1%outSize;
 			res = 0;
 			for(k = 0; k < numPixels; ++ k)
 				res += weights[IDX2(j, k, outSize, numPixels)] * images[IDX2(i, k, numImgs, numPixels)];
 			outputs[IDX2(i, j, numImgs, outSize)] = res;
-		}
 	}
-
 }
 #endif /* UTIL_H_ */

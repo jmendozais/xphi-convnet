@@ -66,7 +66,7 @@ std::vector<Layer*>& Layer::getNexts() {
 }
 
 ConvLayer::ConvLayer(ConvNet* convNet, std::map<std::string, std::string> params) : WeightLayer(convNet, params) {
-	_numFilters = str2int(params["channels"]);
+	_numFilters = str2int(params["filters"]);
 	_filterSize = str2int(params["filterSize"]);
 	_stride = str2int(params["stride"]);
 }

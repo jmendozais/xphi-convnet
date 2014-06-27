@@ -16,6 +16,10 @@ ConvNet::ConvNet() {
 
 ConvNet::~ConvNet() {
 	// TODO Auto-generated destructor stub
+	for(int i = 0; i < _layers.size(); ++i) {
+		assert(_layers[i] != NULL);
+		delete _layers[i];
+	}
 }
 
 ConvNet::ConvNet(std::vector<std::map<std::string, std::string> > params, int miniBatchSize) {
