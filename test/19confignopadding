@@ -3,6 +3,7 @@ type=data
 dataIdx=0
 rows=36
 cols=36
+channels=3
 
 [labels]
 type=data

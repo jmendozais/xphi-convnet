@@ -1,7 +1,7 @@
-CC		:= g++
-LD      := g++
-CFLAGS  := -fopenmp -MP -MD -c  
-LDFLAGS := -fopenmp -MP -MD 
+CC		  := icc
+LD      := icc
+CFLAGS  := -mmic -vec-report3 -fopenmp -MP -MD -c  
+LDFLAGS := -mmic -vec-report3 -fopenmp -MP -MD 
 SOURCES	  := $(shell echo include/common/*.cpp include/convnet/*.cpp)
 HEADERS	  := $(shell echo include/common/*.h include/convnet/*.h)
 OBJECTS	  := $(SOURCES:.cpp=.o)

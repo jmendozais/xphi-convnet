@@ -1,0 +1,15 @@
+1. Run the following commands.
+To run this task on xeon phi first we compile the file in the host and then
+copy to mic0. Because is not possible run make in xeon phi
+mic0 I implemented a script to do the same task.
+
+source /opt/intel/bin/compilervars.sh intel64
+
+make 
+scp -r . mic0:
+scp /opt/intel/composerxe/lib/mic/libiomp5.so mic0:bstyle/libiomp5.so 
+export LANG=en_US.UTF-8
+export LC_ALL=en_US
+ssh mic0 
+export LD_LIBRARY_PATH=.
+sh makerun.sh

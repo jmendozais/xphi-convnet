@@ -38,8 +38,8 @@ void conv(float *images, const int numImgs, const int numChannels,
 	int xp, yp;
 	float res;
 	int i, j, x, y, ch, fi, fj;
+	#pragma omp parallel for private(i, j, xp, yp, x, y, ch, fi, fj, res)
 	for (i = 0; i < numImgs; ++i) {
-		#pragma omp parallel for private(j, xp, yp, x, y, ch, fi, fj, res)
 		for (j = 0; j < numFilters; ++j)
 			/* Convolution */
 			for(x = 0; x < outRows; ++ x)
@@ -84,8 +84,8 @@ void batchPool(float *images, int numImgs, int numChannels, int imgRows, int img
 	int filterPixels = filterSize * filterSize;
 	int xp, yp, i, j, x, y, m, n;
 	float res;
+	#pragma omp parallel for private(i, j, x, y, m, n, res, xp, yp)
 	for(i = 0; i < numImgs; ++ i) {
-		#pragma omp parallel for private(j, x, y, m, n, res, xp, yp)
 		for(j = 0; j < numChannels; ++ j) {
 			for(x = 0; x < outRows; ++ x)
 				for(y = 0; y < outCols; ++ y) {
@@ -103,8 +103,8 @@ void batchPool(float *images, int numImgs, int numChannels, int imgRows, int img
 void fullyConnected(float *images, int numImgs, int numPixels, float *weights, float *outputs, int outSize) {
 	float res;
 	int i, j, k;
+	#pragma omp parallel for private(i, j, k, res) 
 	for(i = 0; i < numImgs; ++ i) {
-	#pragma omp parallel for default(none) private(j, k, res) shared(weights, outputs, images, i, outSize, numPixels)
 		for(j = 0; j < outSize; ++ j) {
 			res = 0;
 			for(k = 0; k < numPixels; ++ k)

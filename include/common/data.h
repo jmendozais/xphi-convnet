@@ -40,7 +40,6 @@ public:
 	}
 	void addData(std::string filename) {
 		struct stat results;
-		std::cout << filename << std::endl;
 		assert(stat(filename.c_str(), &results) == 0);
 
 		std::ifstream fin(filename.c_str(), std::ios::in | std::ios::binary);

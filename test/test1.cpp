@@ -16,7 +16,6 @@ using namespace std;
 #include <map>
 #include <vector>
 #include "omp.h"
-#include "test_utils.h"
 
 std::vector<std::map<std::string, std::string> > parseInput(std::string file) {
 	std::vector<std::map<std::string, std::string> > params;
@@ -62,17 +61,18 @@ void testConvNet() {
 		delete inputs[1];
 	}
 }
-void testConvNet2() {
+double testConvNet2(std::string inputName) {
 	std::vector<std::map<std::string, std::string> > params = parseInput("test/19confignopadding");
-	ConvNet convNet(params, 2);
-	DataProvider dp(2);
-	dp.addData("test/cifar-10-batches-bin/data_batch_1.bin");
+	ConvNet convNet(params, 64);
+	DataProvider dp(64);
+	dp.addData(inputName);
 	int numMinibatches = dp.getNumEntries()/dp.getMiniBatchSize();
 
 	double start, end, duration;
 	start = omp_get_wtime();
+
 	int checker = 0;
-	for(int i = 0; i < 100; ++i) {
+	for(int i = 0; i < numMinibatches/50; ++i) {
 		std::vector<Matrix*> inputs = dp.getMiniBatch(i);
 		convNet.fprop(inputs);
 		checker += convNet._checker;
@@ -82,12 +82,19 @@ void testConvNet2() {
 			delete inputs[1];
 		}
 	}
+	//std::cout << "checksum: " << checker << std::endl;
 	end = omp_get_wtime();
-	std::cout << end - start << std::endl;
-	std::cout << "checksum: " << checker << std::endl;
+	return end - start;
 }
 
 int main() {
-	testConvNet2();
+	std::string inputName;
+	std::cin >> inputName;
+	omp_set_num_threads(1);
+	double stime = testConvNet2(inputName);
+	omp_set_num_threads(64);
+	double ptime = testConvNet2(inputName);
+	std::cout << "Speedup: " << (stime / ptime) << std::endl;	
 	return 0;
 }
+

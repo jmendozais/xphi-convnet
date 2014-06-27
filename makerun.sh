@@ -1,0 +1,6 @@
+echo 'input/data_batch_1.bin ------------------'
+./test/test1.cpp.o <<< 'input/data_batch_1.bin'
+echo 'input/data_batch_3.bin ------------------'
+./test/test1.cpp.o <<< 'input/data_batch_2.bin'
+echo 'input/data_batch_2.bin ------------------'
+./test/test1.cpp.o <<< 'input/data_batch_3.bin'

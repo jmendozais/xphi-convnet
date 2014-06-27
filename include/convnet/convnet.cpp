@@ -7,7 +7,7 @@
 
 #include "convnet.h"
 #include "../common/common.h"
-#include "iostream.h"
+#include <iostream>
 
 ConvNet::ConvNet() {
 	// TODO Auto-generated constructor stub
@@ -29,7 +29,8 @@ ConvNet::ConvNet(std::vector<std::map<std::string, std::string> > params, int mi
 		Layer *newLayer = NULL;
 		DataLayer *newDataLayer = NULL;
 		if( type == "data" ) {
-			newLayer = newDataLayer = new DataLayer(this, params[i]);
+			newDataLayer = new DataLayer(this, params[i]);
+			newLayer = newDataLayer;
 			_dataLayers.push_back(newDataLayer);
 		} else if( type == "conv")
 			newLayer = new ConvLayer(this, params[i]);
